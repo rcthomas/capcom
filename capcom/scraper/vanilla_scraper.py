@@ -6,6 +6,6 @@ class VanillaScraper ( Scraper ) :
     def __call__( self ) :
         docs = list()
         for path, relpath in self.census() :
-            for position, header in enumerate( scraper( path ) ) :
+            for position, header in enumerate( self.scraper( path ) ) :
                 docs.append( dict( path = relpath, position = position, header = header ) )
         return docs
