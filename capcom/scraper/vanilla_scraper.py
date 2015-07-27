@@ -4,8 +4,11 @@ from    scraper import  Scraper
 class VanillaScraper ( Scraper ) :
 
     def __call__( self ) :
+        for entry in self.census() :
+            yield self._relpath( *entry )
+
+    def _relpath( self, path, relpath ) :
         docs = list()
-        for path, relpath in self.census() :
-            for position, header in enumerate( self.scraper( path ) ) :
-                docs.append( dict( path = relpath, position = position, header = header ) )
+        for position, header in enumerate( self.parser( path ) ) :
+            docs.append( dict( relpath = relpath, position = position, header = header ) )
         return docs
