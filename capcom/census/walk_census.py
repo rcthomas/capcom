@@ -10,7 +10,13 @@ class WalkCensus ( Census ) :
         self.rootdirs = rootdirs
 
     def __call__( self ) :
-        return sorted( [ self._rootdir( rootdir ) for rootdir in self.rootdirs ] )
+        return sorted( self._rootdirs() )
+
+    def _rootdirs( self ) :
+        tuples = list()
+        for rootdir in self.rootdirs :
+            tuples += self._rootdir( rootdir )
+        return tuples
 
     def _rootdir( self, rootdir ) :
         tuples = list()
