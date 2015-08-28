@@ -4,11 +4,12 @@ from    distutils.core  import  setup
 # Scripts to install.
 
 scripts = [ 
+        "capcom-etl-decam"
         ]
 
 # Path to scripts.
 
-scripts = [ "bin/%s" % script for script in scripts ]
+scripts = [ "scripts/%s" % script for script in scripts ]
 
 # Package and sub-packages.
 
