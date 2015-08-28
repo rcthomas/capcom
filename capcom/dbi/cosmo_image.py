@@ -26,6 +26,9 @@ class CosmoImageMetadata ( MongoDBI ) :
 
     @lazy
     def decam_public( self ) :
+        collection = self.database.decam_public
         if self.mode == "readwrite" :
-            self.database.decam_public.ensure_index( [ ( "relpath", 1 ), ( "position", 1 ) ], unique = True )
-        return self.database.decam_public
+            collection.ensure_index( [ ( "relpath", 1 ), ( "position", 1 ) ], unique = True )
+            collection.ensure_index( [ ( "header.DATE-OBS", 1 ) ], sparse = True )
+            collection.ensure_index( [ ( "header.OBSTYPE" , 1 ) ], sparse = True )
+        return collection
