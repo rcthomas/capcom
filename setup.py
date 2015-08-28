@@ -4,7 +4,7 @@ from    distutils.core  import  setup
 # Scripts to install.
 
 scripts = [ 
-        "capcom-etl-decam"
+        "capcom-decam-etl"
         ]
 
 # Path to scripts.
