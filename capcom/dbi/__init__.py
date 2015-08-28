@@ -1,1 +1,1 @@
-from    cosmo_image import  CosmoImageMetadata
+from    cosmo_image import  CosmoImageMetadata, DECamPublicRG

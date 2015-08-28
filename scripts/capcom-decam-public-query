@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+
+"""Kind of just an example."""
+
+import  pprint
+import  re
+
+from    capcom.dbi      import  DECamPublicRG
+
+class DECamPublicObstypes ( DECamPublicRG ) :
+
+    def __init__( self, obstype = None, date = None ) :
+        super( DECamPublicObstypes, self ).__init__()
+        self.obstype = obstype
+        self.date    = date
+
+    def _pipeline( self ) :
+        stages = list()
+
+        # Match documents with a specific OBSTYPE or at least have an OBSTYPE. Optionally consider only specific date.
+
+        match = {
+            "position"       : 0,
+            "header.OBSTYPE" : self.obstype if self.obstype else { "$exists" : 1 },
+        }
+
+        if self.date is not None :
+            pattern = "^{}".format( self.date.replace( "-", "\-" ) )
+            match[ "header.DATE-OBS" ] = { "$regex" : re.compile( pattern ) }
+
+        stages.append( { "$match" : match } )
+
+        # Project out OBSTYPE, relative path, and date; discard document ID.
+
+        stages.append( { "$project" : { 
+            "_id"            : 0, 
+            "header.OBSTYPE" : 1,
+            "relpath"        : 1,
+            "date"           : { "$substr" : [ "$header.DATE-OBS", 0, 10 ] },
+        } } )
+
+
+        # Group by date and OBSTYPE.
+    
+        stages.append( { "$group" : {
+            "_id"      : { "date" : "$date", "obstype" : "$header.OBSTYPE" },
+            "count"    : { "$sum"  : 1 },
+            "relpaths" : { "$push" : "$relpath" },
+        } } )
+
+        # Sort by date.
+    
+        stages.append( { "$sort" : { 
+            "_id.date" : 1,
+        } } )
+
+        return stages
+
+if __name__ == "__main__" :
+
+    import  argparse
+    import  sys
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument( "--obstype", "-o", help = "OBSTYPE" )
+    parser.add_argument( "--date"   , "-d", help = "date to match YYYY[-MM[-DD]]" )
+    parser.add_argument( "--verbose", "-v", help = "show report generator pipeline first", action = "store_true" )
+    parser.add_argument( "--test"   , "-t", help = "just show report pipeline, don't query", action = "store_true" )
+    args = parser.parse_args()
+
+    rg = DECamPublicObstypes( args.obstype, args.date )
+    if args.test or args.verbose :
+        print rg
+    if args.test :
+        sys.exit( 0 )
+    for doc in rg() :
+        pprint.pprint( doc )
