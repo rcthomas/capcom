@@ -3,8 +3,8 @@ import  urllib
 
 import  pymongo
 
-from    ..  import  util.lazy   as lazy
-from    dbi import  DBI
+from    ..util  import  lazy
+from    dbi     import  DBI
 
 class MongoDBI ( DBI ) :
 
@@ -24,4 +24,4 @@ class MongoDBI ( DBI ) :
 
     @lazy
     def uri( self ) :
-        return "mongodb://{}:{}@{}".format( self.username, urllib.quote_plus( self.password ), self.hostname )
+        return "mongodb://{}:{}@{}/{}".format( self.username, urllib.quote_plus( self.password ), self.hostname, self.dbname )
