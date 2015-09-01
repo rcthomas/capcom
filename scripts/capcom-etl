@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+
+"""Extract, transform, load decam-public data into the Cosmology Image Metadata MongoDB."""
+
+import  multiprocessing as  mp
+import  os
+import  sys
+import  time
+
+import  pymongo
+
+from    capcom.dbi      import  CosmoImageMetadata
+from    capcom.census   import  WalkCensus
+from    capcom.parser   import  AstropyParser
+from    capcom.selector import  EndingSelector
+
+def create_init_worker( collection ) :
+    def init_worker( function ) :
+        function.collection = collection
+        function.parser     = AstropyParser()
+    return init_worker
+
+def worker( entry ) :
+    docs = list()
+    path, relpath = entry
+    print os.getpid(), path, relpath
+    if worker.collection.find( { "relpath" : relpath } ).count() > 0 :
+        print "skipped entire file"
+        return
+    try :
+        for position, header in enumerate( worker.parser( path ) ) :
+            docs.append( dict( relpath = relpath, position = position, header = header ) )
+    except IOError :
+        print "error parsing file " + relpath
+        return
+    try :
+        worker.collection.insert( docs, continue_on_error = True )
+    except pymongo.errors.DuplicateKeyError :
+        print "duplicate key insert(s) detected"
+
+def decam_public() :
+
+    dbi        = CosmoImageMetadata.read_write()
+    collection = dbi.decam_public
+
+    selector    = EndingSelector( ".fits.fz" )
+    rootdirs    = [ os.path.join( os.environ[ "COSMO" ], "staging/decam-public" ) ]
+    census      = WalkCensus( selector, rootdirs, True )
+    init_worker = create_init_worker( collection )
+
+    pool = mp.Pool( 4, init_worker, ( worker, ) )
+    pool.map( worker, census() )
+    pool.close()
+
+def bass() :
+
+    dbi        = CosmoImageMetadata.read_write()
+    collection = dbi.bass
+
+    selector    = EndingSelector( ".fits.fz" )
+    rootdirs    = [ os.path.join( os.environ[ "COSMO" ], "staging/bok/BOK_Raw" ) ]
+    census      = WalkCensus( selector, rootdirs, True )
+    init_worker = create_init_worker( collection )
+
+    pool = mp.Pool( 4, init_worker, ( worker, ) )
+    pool.map( worker, census() )
+    pool.close()
+
+if __name__ == "__main__" :
+
+    bass()

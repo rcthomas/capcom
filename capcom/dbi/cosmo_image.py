@@ -33,6 +33,15 @@ class CosmoImageMetadata ( MongoDBI ) :
             collection.ensure_index( [ ( "header.OBSTYPE" , 1 ) ], sparse = True )
         return collection
 
+    @lazy
+    def bass( self ) :
+        collection = self.database.bass
+        if self.mode == "readwrite" :
+            collection.ensure_index( [ ( "relpath", 1 ), ( "position", 1 ) ], unique = True )
+            collection.ensure_index( [ ( "header.DATE-OBS", 1 ) ], sparse = True )
+#           collection.ensure_index( [ ( "header.OBSTYPE" , 1 ) ], sparse = True )
+        return collection
+
 class DECamPublicRG ( MongoRG ) :
 
     def __init__( self, dbi = None ) :
