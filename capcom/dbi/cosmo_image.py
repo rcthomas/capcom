@@ -39,7 +39,7 @@ class CosmoImageMetadata ( MongoDBI ) :
         if self.mode == "readwrite" :
             collection.ensure_index( [ ( "relpath", 1 ), ( "position", 1 ) ], unique = True )
             collection.ensure_index( [ ( "header.DATE-OBS", 1 ) ], sparse = True )
-#           collection.ensure_index( [ ( "header.OBSTYPE" , 1 ) ], sparse = True )
+            collection.ensure_index( [ ( "header.OBSTYPE" , 1 ) ], sparse = True )
         return collection
 
 class DECamPublicRG ( MongoRG ) :
